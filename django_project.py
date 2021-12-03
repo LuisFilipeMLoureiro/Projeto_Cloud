@@ -13,7 +13,7 @@ sudo ufw allow 8080/tcp
 sudo reboot"""
 
 
-def create_django(ip_postgres):
+def create_django(Name, ip_postgres):
 
     print("")
     print("====================================================================")
@@ -36,18 +36,18 @@ def create_django(ip_postgres):
                 'Tags': [
                     {
                         'Key': 'Name',
-                        'Value': 'DJANGO_USER'
+                        'Value': Name
                     },
                     {
                         'Key': 'Owner',
-                        'Value': 'DJANGO_USER'
+                        'Value': Name
                     }
                 ],
                 
             }
         ]
     )
-
+    id_instancia =  django["Instances"][0]["InstanceId"]
     print("Id Instância: " + django["Instances"][0]["InstanceId"])
     print("")
     print("====================================================================")
@@ -55,3 +55,7 @@ def create_django(ip_postgres):
     print("====================================================================")
     print("django criado! \n")
     print("====================================================================")
+
+
+    return ec2_client, id_instancia
+

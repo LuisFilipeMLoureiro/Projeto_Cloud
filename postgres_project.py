@@ -2,7 +2,7 @@ import boto3
 
 
 
-def create_postgres():
+def create_postgres(Name):
 
     print("")
     print("====================================================================")
@@ -29,11 +29,11 @@ def create_postgres():
                 'Tags': [
                     {
                         'Key': 'Name',
-                        'Value': 'teste'
+                        'Value': Name
                     },
                     {
                         'Key': 'Owner',
-                        'Value': 'teste'
+                        'Value': Name
                     }
                 ],
                 
@@ -48,3 +48,4 @@ def create_postgres():
     print("====================================================================")
     print("Postgres criado! \n")
     print("====================================================================")
+

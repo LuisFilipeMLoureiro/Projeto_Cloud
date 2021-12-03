@@ -43,13 +43,13 @@ def SG_Deletor_NV():
     except ClientError as e:
         print(e)
 
-def SG_Postgres():
+def SG_Postgres(Name):
 
     loc_postgres = boto3.resource("ec2", region_name="us-east-2")
 
     SG_Postgres = loc_postgres.create_security_group(
         Description='liberando',
-        GroupName='SG_Postgres'
+        GroupName=Name
     )
 
     SG_Postgres.authorize_ingress(
@@ -75,13 +75,13 @@ def SG_Postgres():
 
 
 
-def SG_Django():
+def SG_Django(Name):
 
     loc_django = boto3.resource("ec2", region_name="us-east-1")
 
     SG_Django = loc_django.create_security_group(
         Description='liberando',
-        GroupName='SG_Django'
+        GroupName=Name
     )
 
     SG_Django.authorize_ingress(
@@ -103,7 +103,22 @@ def SG_Django():
     print("====================================================================")
     print("SG North Virginia - Django criado! \n")
     print("====================================================================")
-    return SG_Django
+
+
+    ec2 = boto3.client('ec2', region_name="us-east-1")
+    response = ec2.describe_security_groups(
+        Filters=[
+            dict(Name='group-name', Values=[Name])
+    ])
+
+
+    SG_id =  response['SecurityGroups'][0]['GroupId']
+
+    return SG_id
+
+
+
+
 
 '''
 Referências:
