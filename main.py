@@ -7,8 +7,9 @@ from Load_Balancer_Creator import LoadBalancerCreator
 from Delete_Instance import delete_instance
 from AutoScalling import create_AUG
 import time
+import logging
 
-
+logging.basicConfig(filename='LOG_File.txt', filemode='w',format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
 #Variaveis Globais
 POSTGRES_REGION = "us-east-2"
 DJANGO_REGION = "us-east-1"
@@ -132,26 +133,39 @@ def attached(TARGET_GROUP, Arn,AutoScalingGroupName):
     )
 
 def playbook():
+    
+    logging.info("Iniciando Programa...")
     #create_key_pair_ohio()
     #create_key_pair_virginia()
     SG_Postgres(SG_POSTGRES)
+    logging.info("SG PostGres criado...")
     create_postgres(POSTGRES_NAME)
+    logging.info("PostGres criado...")
     SG_ID = SG_Django(SG_DJANGO)
+    logging.info("SG Djanfo criado...")
     time.sleep(65)
     ec2_django, id_django = create_django(DJANGO_NAME, get_public_ip(POSTGRES_NAME, POSTGRES_REGION))
+    logging.info("Djanfo criado...")
     time.sleep(65)
     DJANGO_AMI = create_django_ami(NAME_AMI,ec2_django, id_django)
+    logging.info("AMI Djanfo criado...")
     print("criação da img concluída")
     SGlb(Security_LB )
+    logging.info("SG do Load Balancer criado...")
     time.sleep(5)
     Arn, TARGET_GROUP = LoadBalancerCreator(Security_LB, LB_NAME, Name_TG)
+    logging.info("Load Balancer criado...")
     print("Load Balancer criado")
     create_AUG(DJANGO_NAME, DJANGO_REGION, configuration_NAME, aug_NAME, AutoScalingGroupName, DJANGO_AMI, SG_ID)
+    logging.info("AUG criado...")
     print("group scalling criado")
     attached(TARGET_GROUP, Arn,AutoScalingGroupName)
+    logging.info("Listeners criados...")
     print("attached")
     delete_instance(DJANGO_NAME, DJANGO_REGION)
+    logging.info("Instancia Djando apagada...")
     print("instancia django deletada")
+    logging.info("Fim do programa...")
 
 # -- play
 playbook()

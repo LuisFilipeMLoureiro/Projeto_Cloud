@@ -1,8 +1,6 @@
 import requests
 
 dns = input("DNS LOAD BALANCER: ")
-
-
 verbo = input('Verbo: ')
 
 
