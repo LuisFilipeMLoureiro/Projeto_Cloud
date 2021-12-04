@@ -2,30 +2,31 @@ import boto3
 import os
 from postgres_project import create_postgres
 from django_project import create_django
-from SG_Manager import SG_Deletor_Ohio,SG_Deletor_NV,SG_Postgres,SG_Django
+from SG_Manager import SG_Deletor_Ohio,SG_Deletor_NV,SG_Postgres,SG_Django, SGlb
 from Load_Balancer_Creator import LoadBalancerCreator
 from Delete_Instance import delete_instance
 from AutoScalling import create_AUG
 import time
 
+
+#Variaveis Globais
 POSTGRES_REGION = "us-east-2"
 DJANGO_REGION = "us-east-1"
-#[Powershell]
-# ssh -i aws_ec2_key_virginia.pem ubuntu@18.212.171.88
-#[Prompt]
-#telnet 3.14.8.159 5432
-#Variaveis Globais
-POSTGRES_NAME = "POSTGRES_10"
-SG_POSTGRES = "SG_POSTGRES_10"
 
-DJANGO_NAME = "DJANGO_10"
-SG_DJANGO = "SG_DJANGO_10"
-LB_NAME = "LB10"
-NAME_AMI = "AMI10"
 
-configuration_NAME = 'config8'
-aug_NAME = 'testeaUG1'
-AutoScalingGroupName = "GNAME1"
+POSTGRES_NAME = "POSTGRES_26"
+SG_POSTGRES = "SG_POSTGRES_26"
+
+DJANGO_NAME = "DJANGO_26"
+SG_DJANGO = "SG_DJANGO_26"
+LB_NAME = "LB26"
+NAME_AMI = "AMI26"
+
+configuration_NAME = 'config26'
+aug_NAME = 'testeaUG16'
+AutoScalingGroupName = "GNAME26"
+Name_TG = "TG12"
+Security_LB = "SG_LB10"
 
 def create_key_pair_ohio():
     ec2_client = boto3.client("ec2", region_name="us-east-2")
@@ -112,6 +113,24 @@ def create_django_ami(Name, ec2_django, id_django):
     print(imagem_djnago['ImageId'])
     return imagem_djnago['ImageId']
 
+
+def attached(TARGET_GROUP, Arn,AutoScalingGroupName):
+    load_balancer = boto3.client('elbv2', region_name='us-east-1')
+    session = boto3.session.Session()
+    ec2AutoScalling = session.client('autoscaling', region_name='us-east-1')
+
+    ec2AutoScalling.attach_load_balancer_target_groups(
+        TargetGroupARNs=[TARGET_GROUP],
+        AutoScalingGroupName=AutoScalingGroupName
+    )
+
+    load_balancer.create_listener(
+        LoadBalancerArn=Arn,
+        DefaultActions=[{ 'Type': 'forward', 'TargetGroupArn': TARGET_GROUP}],
+        Protocol='HTTP',
+        Port=80  
+    )
+
 def playbook():
     #create_key_pair_ohio()
     #create_key_pair_virginia()
@@ -123,11 +142,14 @@ def playbook():
     time.sleep(65)
     DJANGO_AMI = create_django_ami(NAME_AMI,ec2_django, id_django)
     print("criação da img concluída")
+    SGlb(Security_LB )
     time.sleep(5)
-    LoadBalancerCreator(SG_DJANGO, LB_NAME)
+    Arn, TARGET_GROUP = LoadBalancerCreator(Security_LB, LB_NAME, Name_TG)
     print("Load Balancer criado")
     create_AUG(DJANGO_NAME, DJANGO_REGION, configuration_NAME, aug_NAME, AutoScalingGroupName, DJANGO_AMI, SG_ID)
     print("group scalling criado")
+    attached(TARGET_GROUP, Arn,AutoScalingGroupName)
+    print("attached")
     delete_instance(DJANGO_NAME, DJANGO_REGION)
     print("instancia django deletada")
 

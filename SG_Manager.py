@@ -93,6 +93,13 @@ def SG_Django(Name):
 
     SG_Django.authorize_ingress(
         CidrIp="0.0.0.0/0",
+        FromPort=80,
+        ToPort=80,
+        IpProtocol="tcp"
+    )
+
+    SG_Django.authorize_ingress(
+        CidrIp="0.0.0.0/0",
         FromPort=22,
         ToPort=22,
         IpProtocol="tcp"
@@ -116,7 +123,30 @@ def SG_Django(Name):
 
     return SG_id
 
+def SGlb(Security_LB):
+    region = boto3.resource("ec2", region_name="us-east-1")
+    sg = region.create_security_group(
+        GroupName=Security_LB,
+        Description='Security do load done'
+    )
 
+    sg.authorize_ingress(
+        CidrIp="0.0.0.0/0",
+        FromPort=80,
+        ToPort=80,
+        IpProtocol="tcp"
+    )
+
+    ec2 = boto3.client('ec2', region_name="us-east-1")
+    response = ec2.describe_security_groups(
+        Filters=[
+            dict(Name='group-name', Values=[Security_LB])
+    ])
+
+
+    res =  response['SecurityGroups'][0]['GroupId']
+
+    return res
 
 
 
